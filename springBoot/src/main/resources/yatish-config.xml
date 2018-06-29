@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd" default-init-method="methodx" default-destroy-method="methody">
+        
+        
+        
+    
+   
+   	<!-- The Male bean will be created by calling the default(non-parameterized) constructor. and no value to the properties of Male class will be initialized -->
+    <bean class="com.yatish.pojos.Male"/>
+    
+    <!-- The Female bean will be created by calling the default(non-parameterized) constructor. and  value to the property 'name' of Female class will be initialized using setter method
+    of 'name' and 'friendName' property.
+    
+    For this type of initialization, always there should be a setter method for the property, which we are setting in property tag. if setter method is not available in the class, 
+    then it will throw up an error. while starting the application
+    
+    The value of the name/friendName attribute in property tag, should be same as the property variable name specified in the Female class
+    
+    Spring has the intelligance of converting the auto boxing and unboxing of data types. in the below example, spring will auto convert the 'age' property value to int during initializatoin
+    -->
+    <bean class="com.yatish.pojos.Female">
+    	<property name="name" value="Ramya"/>
+    	<property name="friendName" value="Shalni"/>
+    	<property name="age" value="25"/>
+    </bean>
+    
+    
+    <!-- The Car bean will be created by calling the corresponding constructor. and  value to the corresponding properties of Car class will be initialized using constructor method
+    
+    For this type of initialization, Even if the setter method are not there also, spring wont throw any error. But if the corresponding constructor is not present then it will throw error
+    In this case we are sending 2 arguments, if there in no constructor in class Car with 2 parameters, then spring will throw up an error
+    
+    <constructor-arg> tag doesnt accept 'name' attribute.
+    
+    Car bean has two constructors, 'Car(String model,String company)' and 'Car(String model,int yearOfMake)', here which constructor do you think, the spring will call as we are specifying
+    2 arguments? Actually spring will consider the type of arguments as strings by default. hence it will call constructor with 2 string parameters. i.e. 'Car(String model,String company)'
+    
+    Consider there is only one constructor in Car class, which is 'Car(String model,int yearOfMake)', then what will this bean do. will spring convert the string of first argument to int 
+    and then try calling the 'Car(String model,int yearOfMake)'? 	
+    Yes. It will convert the second argument to int and initialize the bean.
+    
+    Consider there are two constructors 'Car(String model,String company)' and 'Car(String model,int yearOfMake)'. I wan to create the bean with calling the 'Car(String model,int yearOfMake)'
+    instead of 'Car(String model,String company)', how can i do that?
+    Spring provides one more attribute to constructor-arg to handle these kind of situations, i.e. 'type' attribute, you can specify what type with the argument so that the constructor with
+    specified type will be called for this case, it will be like,
+    <bean class="com.yatish.pojos.Car">
+    	<constructor-arg type="java.lang.String" value="Ritz"/>		or 		<constructor-arg value="Ritz"/>  ==> even if we dont specify type, it will take default type. i.e. String
+    	<constructor-arg type="int" value="1992"/>
+    </bean>
+    
+    
+    The 1st <constructor-arg> tag value will goto the 1st parameter in the constructor and 2nd will goto the 2nd parameter in constructor. it is same as of java code 
+    'Car("Ritz","Maruti")'
+    
+    consider, i want to send the 1st <constructor-arg> value to the 2nd parameter in the constructor and the 2nd <constructor-arg> value to the 1st parameter in the constructor. In that
+    case you can use 'index' attribute as shown below
+    <bean class="com.yatish.pojos.Car">
+    	<constructor-arg index="1" value="Ritz"/>
+    	<constructor-arg index="0" value="Maruti"/>
+    </bean>
+    
+    
+    Can we use both <constructor-arg> and <property> tag to initialize all the properties like as shown below,
+    <bean class="com.yatish.pojos.Car">
+    	<constructor-arg value="Ritz"/>
+    	<constructor-arg value="Maruti"/>
+    	<property name="yearOfMake" value="23"/>
+    </bean>	
+    No!!!!! Spring Allows either of one of them, if we use both of them, then spring will throw an error   
+    -->
+    <bean id="xyz" class="com.yatish.pojos.Car">
+    	<constructor-arg value="Ritz"/>
+    	<constructor-arg value="Maruti"/>
+    </bean>
+    
+    
+    <!-- 
+    If in case you need 2 beans for a same class, in this case, consider I want a bean for 'GV650' and one for 'Hayabusa', I define them as follows,
+	    	"<bean class="com.yatish.pojos.Bike"/>
+	    		<property name="name" value="GV650"/>
+		    </bean
+		    <bean class="com.yatish.pojos.Bike"/>
+		    	<property name="name" value="Hayabusa"/>
+		    </bean>"
+	    Now, if I give following in Java file,
+		    @Autowired
+		    Bike bike;
+		Whether spring will return 'GV650' bean or 'Hayabusa' bean?
+		It will give an error syaing, there are 2 beans hence ambigious situation.
+		
+		How do we resolve this ambiguity?
+		Spring provides 2 ways to resolve this,
+		1) Using id attribute
+		2) Using qualifier tag
+			Using id attribute
+			*******************
+				"<bean id="gv650Bike" class="com.yatish.pojos.Bike"/>
+		    		<property name="name" value="GV650"/>
+			    </bean
+			    <bean id="hayabusaBike" class="com.yatish.pojos.Bike"/>
+			    	<property name="name" value="Hayabusa"/>
+			    </bean>"
+			Using qualifier tag
+			********************
+				"<bean class="com.yatish.pojos.Bike"/>
+					<qualifier value="gv650Bike"></qualifier>
+		    		<property name="name" value="GV650"/>
+			    </bean
+			    <bean class="com.yatish.pojos.Bike"/>
+			    	<qualifier value="hayabusaBike"></qualifier>
+			    	<property name="name" value="Hayabusa"/>
+			    </bean>"
+		In the Java file you need to specify like this, if you want 'GV650' bean,
+			@Autowired
+			@Qualifier("gv650Bike")
+		    Bike bike;
+		the value in the @Qualifier should be same as that of the id specified in the bean. if 'id' is not defined in 'bean' tag.
+	    
+	    
+	    Consider, If I specify both id attribute and qualifier in a bean, then what will be considered to resolve the ambiguity?
+	    Qualifier takes precedence in this case. First spring will check
+	    
+	    So, spring will check for the qualifer tag first in the bean, if it is present, it will consider the value of the 'qualifier' tag to resolve the ambiguity, if qualifier tag 
+	    is not present then it will check if the 'id' attribute is defined in the beans and use them for resolving the ambiguity?
+	    Yes!!!!!
+	    
+	    
+	    Consider, I define qualifier in one bean and in other bean i dont use qualifier, in this case consider I define as follows,
+			    <bean id="gv650Bike" class="com.yatish.pojos.Bike">
+		    		<property name="name" value="GV650"/>	    		
+			    </bean>
+			    <bean id="hayabusaBike" class="com.yatish.pojos.Bike">
+			    	<qualifier value="suzuki"></qualifier>
+			    	<property name="name" value="Hayabusa"/>
+			    </bean>
+	    In java, if I say the identifier as 'gv650Bike' or 'hayabusaBike' what will happen?
+	    if identifier in java is 'gv650Bike'
+	    *************************************
+	    In this case, it will check the first bean, since it doesnt have an 'qualifier' tag, it will go and check the 'id' attribute, as the 'id' attribute is matching, it will
+	    select this bean.
+	    if identifier in java is 'hayabusaBike'
+	    ***************************************
+	    In this case, it will check the first bean, since it doesn't have an 'qualifier' tag, it will go and check the 'id' attribute, since its 'id' attribute also doesnt match,
+	    it will goto the next bean and check for the 'qualifier' tag, since the 'qualifier' tag is present, it will check the value of qualifier, as it doesnt match with identifier
+	    'hayabusaBike', it will not go and check if the the bean has 'id' attribute, even though it is there. it will not check for id and throws an error saying bean not found.
+	    
+    -->
+    <bean id="gv650Bike" class="com.yatish.pojos.Bike">
+    	<qualifier value="hyosung"></qualifier>
+    	<property name="name" value="GV650"/>
+    </bean>
+    <bean id="hayabusaBike" class="com.yatish.pojos.Bike">
+    	<qualifier value="suzuki"></qualifier>
+    	<property name="name" value="Hayabusa"/>
+    </bean>
+    
+    
+    <!-- A class may contain other class objects as fields/properties.
+    	In this example, bean 'BikeContainer' has 'Bike' class object as a field. In these cases, we can specify the <bean> under <property> as shown in the bean tag.
+    	
+    	
+    	we have simply rewritten the complete <bean> tag of 'Car' and 'Bike' again. so to reduce this code duplication and reduce code, spring provides a way to solve this problem
+    	using 'ref' attribute as shown below,
+	    	<bean class="com.yatish.pojos.BikeContainer">
+	    		<property name="gv650Bike" ref="gv650Bike"/>
+	    	</bean>
+	    In above <bean> we need the bean to be written with 'id' attribute, as we refer the id using 'ref' attrubute. 
+	    NOTE: 'ref' attribute checks for bean with same 'id' and maps it. it doesn't consider qualifier, even if a qualifier value matches with 'ref' value, spring doesn't consider.
+    	
+    	
+    	For using 'ref', First, we have to find the id of the bean we want to include, and then assign it as the value to 'ref'. And we need to write the <property> tag. 
+    	For this also Spring Came up with an appraoch called autowiring. There are many types of autowiring. one among them is 'autowire by name'
+    	autowire by name
+    	****************
+    		<bean class="com.yatish.pojos.BikeContainer" autowire="byName"/>
+    	if we just specify 'autowire' attribute with value as 'byName', spring will check the property/field name in java file, in this case it is 'gv650Bike' then it will 
+    	scan all the beans and finds a bean with id as 'gv650Bike' and maps it to the property.
+    	
+    	
+    	
+    	In 'autowire by name', spring will not only search for the id of in just the beans defined for the current class, it will search all beans. In this case, spring will not only
+    	search for 'BikeContainer' class beans, it will search all the beans like 'Car', 'Bike', 'Male' etc classes. and if a id is matching with some other class like 'Car','Female'
+    	class, spring will try to inject it and throws an error saying class doesn't match. 
+    	 	
+     --> 
+    
+    <bean class="com.yatish.pojos.BikeContainer">
+    	<property name="gv650Bike">
+	    	<bean class="com.yatish.pojos.Bike">
+	    		<property name="name" value="GV650"/>
+	    	</bean>
+    	</property>
+    </bean>
+   
+    
+    <!-- 
+    	
+    	We have one more problem with 'autowire byName', in this, we have to make sure that property/name is same as that of the id of the bean which we want to be mapped to it, 
+    	while writing the java class. It is a burden on the programmer. Spring came up with a solution for this by supporting autowiring by type.
+    	autowire by type
+    	****************
+    		<bean class="com.yatish.pojos.CarContainer" autowire="byType"/>
+    	if we specify 'autowire' attribute with value as 'byType', spring will check the property/field type in java file, in this case, it will check for the type of field 'car',
+    	which is 'com.yatish.pojos.Car', hence it will check for the bean defined with for class 'com.yatish.pojos.Car' and map it(inject) that bean.
+    	NOTE: if we have more than one bean for a class, we cannot use 'autowire byType', spring will say, it has found more than one bean with this class type, hence ambiguity. hence
+    		  if we have more than one bean for a class, we have to fall back to 'autowire byName'
+    		  
+
+     -->  
+     
+    <bean class="com.yatish.pojos.CarContainer">
+    	<property name="car">
+	    	<bean class="com.yatish.pojos.Car">
+	    		<property name="model" value="Ritz"/>
+	    	</bean>
+    	</property>
+    </bean> 
+    
+    
+    
+    <!-- 
+    	Initializing collections,in the beans
+    	
+    	below, show the initialization of the list, array and list of objects etc. We can also initialize maps as well, but not explained here as it will too much over to learn on
+    	old fashion xml style of doing.
+    
+     -->
+    
+    <bean class="com.yatish.pojos.CollectionOfThings">
+    	<property name="names">
+    		<list>
+    			<value>Yatish</value>
+    			<value>Ranjith</value>
+    		</list>
+    	</property>
+    	<property name="ages">
+    		<array>
+    			<value>23</value>
+    			<value>44</value>
+    			<value>63</value>
+    		</array>
+    	</property>
+    	<property name="bikes">
+    		<list>
+    			<ref bean="gv650Bike"/>
+    			<ref bean="hayabusaBike"/>
+    		</list>
+    	</property>
+    	
+    
+    </bean>
+    
+    
+    <!-- 
+    	Spring also provides an option to inherit a particular bean of parent class to child class.
+    	eg: In the below beans, we have a parent Beans 'parentBean1' and 'parentBean2'. then we use a special attribute 'parent' in the child bean to specify which parent bean we want
+    	 	to be inherited to the 'Child' bean
+    
+     -->
+    <bean id="parentBean1" class="com.yatish.pojos.Parent">
+    	<property name="name" value="Parent"/>
+    </bean>
+    
+    <bean id="parentBean2" class="com.yatish.pojos.Parent">
+    	<property name="name" value="Parent"/>
+    </bean>
+    
+    
+    <bean class="com.yatish.pojos.Child" parent="parentBean2"/>
+    
+    
+    
+    <!-- 
+    	Like 'finally' in java. spring also provides option for the user to define a function which will be called before the bean is destroyed. In addition it gives us one more capability
+    	That is spring also allows us to define a function which will be called as soon as the bean is created.
+    	
+    	We can simply write 2 functions in the class and specify that function name as the value to attribute 'init-method' and 'destroy-method'
+    
+    	The 'init-method' will be called as soon as the bean is created and all the properties are initialized.
+    	The 'destroy-method' will be called just before destroying the bean.
+    	
+    	In this example, 'method1()' will be called after bean creation and 'method2()' will be called before bean deletion.
+    	
+    	So should i write these attributes in each and every bean and specify the methods, that takes too much of effort?
+    	No!!!! you need not.
+    	Spring also provides an option to declare default init and destroy methods. so that we need not specify these attributes in each bean. but whatever the default init method value
+    	we give, we have to write method in a class with the same name, to make it as init method for that bean. same for destroy method also.
+    	
+    	eg: <beans ........ default-init-method="methodx" default-destroy-method="methody"> ..... </beans>
+    		here, if you just write 'methodx()' and 'methody()' in any of the bean classes, implicitly spring considers 'methodx()' as init method and 'methody()' as the destroy method
+    		for that bean. 
+    	
+    	NOTE: if we are specifying default init and destroy methods, then attribute name is different not 'init-method', it is 'default-init-method'. similarly for destroy it is not 
+    			'destroy-method' it is 'default-destroy-method'
+    			
+    	NOTE: we can write the default init and destroy methods only on the '<beans>' tag not on the '<bean>' tag, as this default methods will apply to all beans declared under the 
+    			beans tag.
+    			
+    	
+    	What will happen if i have both default init/destroy methods and bean specify init/destroy methods declared?
+    	In that case, the init/destroy methods declared in the corresponding bean will take precedence over the default methods.
+    	
+    	
+    	For real example, look at the <beans> tag defined in the file. :P
+    	
+    	
+    	This is also called as spring callbacks.
+    	
+     -->
+    <bean class="com.yatish.pojos.Chair" init-method="method1" destroy-method="method2"/>
+    
+    
+    
+    
+    <!--   
+    	Above, we saw, bean 'init-method' and 'destroy-method'. consider you defined the 'init-method' and 'destroy-method' in <beans> tag. In this case you have to define the 
+    	init and destroy methods in all the bean classes. consider if there is few set of statements which needs to be executed before/after initialization of each and every bean. in this
+    	case, simply writing the same set of lines in each and every beans init or destroy method will be hectic, code duplication. so spring gives us one more capability. a generic
+    	init and destroy method at spring container level. this applies to all beans in the container.
+    	
+    	checkout the java file 'S4_7_BeanPostProcessor' for more details.
+    	
+    	This is called as BeanPostProcessor.
+     -->
+    
+    <bean class="com.yatish.springBootStart.S4_7_BeanPostProcessor"/>
+    
+    
+    
+    <!-- 
+    	Above, we saw 'BeanPostProcessor'. The bean postprocessor will be executed before and after initializing each and every bean. Consider user has a few set of statements, which
+    	user wants to be executed only once before starting with the beans initialization starts.
+    	
+    	checkout the java file 'S4_8_BeanFactoryPostProcessor' for more details.
+    	
+    	This is called 'BeanFactoryPostProcessor'
+    	
+    	If we want to declare the properties file, in xml instead of @PropertySource annotation. then you have to provide the prperty tag witin the 'BeanFactoryPostProcessor' 
+    	tag as follows,
+    		<bean class="com.yatish.springBootStart.S4_8_BeanFactoryPostProcessor">
+    			<property name="locations" value="classpath:variables.properties"/>
+    		</bean>
+    	
+    	
+     -->
+    <bean class="com.yatish.springBootStart.S4_8_BeanFactoryPostProcessor"/>
+      
+      
+    <!-- 
+    	You can bind the properties file to spring using xml as well, as you bind using @PropertySource annotaion. as follows
+    	
+    	'<context:property-placeholder location="classpath:variables.properties" />'
+     -->
+     
+     
+     
+     <!-- 
+     	how can get a value from the properties file and assign into some property of a bean?
+     	See the example in below bean.
+      -->
+     <bean id="rc390" class="com.yatish.pojos.Bike">
+    	<qualifier value="ktm"></qualifier>
+    	<property name="name" value="${bikeName}"/>
+    </bean>
+     
+     
+      
+      
+    
+        
+</beans>
